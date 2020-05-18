@@ -17,11 +17,19 @@ RUN apt-get update -y \
 RUN echo "deb http://packages.ros.org/ros/ubuntu xenial main" > /etc/apt/sources.list.d/ros-latest.list  \
     \
 # setup keys
-    && apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654  \
+    && apt-key adv --keyserver hkp://pgp.mit.edu:80 --recv-key 421C365BD9FF1F717815A3895523BAEEB01FA116  \
     \
 # update the repository and install ros kinetic
-    && aptitude update -y -q && aptitude install -y -q -R ros-kinetic-desktop-full python-rosinstall ninja-build python3-pip python3-setuptools python3-defusedxml python3-dev \
+    && aptitude update -y -q && aptitude install -y -q -R ros-kinetic-desktop python-rosinstall ninja-build python3-pip python3-setuptools python3-defusedxml python3-dev \
     ros-kinetic-rosbridge-library ros-kinetic-rosbridge-server ros-kinetic-rosbridge-suite
+
+# update gazebo7 to gazebo9
+RUN echo "deb http://packages.osrfoundation.org/gazebo/ubuntu xenial main" > /etc/apt/sources.list.d/gazebo-latest.list \
+    && curl http://packages.osrfoundation.org/gazebo.key |apt-key add - \
+    && aptitude update -y -q \
+    && aptitude remove -y -q gazebo7; aptitude install -y -q -R gazebo9
+
+RUN aptitude install -y -q -R  ros-kinetic-gazebo9-ros-control ros-kinetic-gazebo9-ros-pkgs ros-kinetic-tf2-geometry-msgs ros-kinetic-tf2-sensor-msgs
 
 # install ros python3 support
 RUN pip3 install --upgrade pip && pip3 install --no-cache-dir catkin-tools rospkg ws4py transforms3d trollius
@@ -55,7 +63,7 @@ RUN aptitude install -y -q -R  wget python-pip pylint clang libxss1 libnss3 libn
 RUN aptitude update -y -q && aptitude install -y -q -R  bash-completion wget vim git iputils-ping iproute2 netcat tmux terminator xauth openssh-server sudo pcmanfm
 
 # install ros related components
-RUN aptitude install -y -q -R ros-kinetic-gazebo-ros-control \
+RUN aptitude install -y -q -R \
     ros-kinetic-ros-controllers \
     ros-kinetic-rqt-controller-manager \
     ros-kinetic-moveit \
@@ -64,7 +72,7 @@ RUN aptitude install -y -q -R ros-kinetic-gazebo-ros-control \
     ros-kinetic-pid  \
     \
 # install Barret_Hand related components
-    && aptitude install -y -q -R libignition-math2-dev ros-kinetic-barrett-hand ros-kinetic-barrett-hand-sim \
+    && aptitude install -y -q -R libignition-math2-dev ros-kinetic-barrett-hand \
     \
 # install force dimension device driver and related components
     && aptitude install -y -q -R libusb-1.0-0 libusb-1.0-0-dev freeglut3 freeglut3-dev \
@@ -77,7 +85,6 @@ RUN aptitude install -y -q -R ros-kinetic-gazebo-ros-control \
     \
 # install video opencv driver and find_object application
     && aptitude install -y -q -R ros-kinetic-video-stream-opencv ros-kinetic-find-object-2d libcgal-dev  libcgal-qt5-dev
-
 
 RUN mkdir -p /opt/scripts/container/
 COPY ./scripts/* /opt/scripts/container/
